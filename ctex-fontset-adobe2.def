@@ -1,4 +1,4 @@
-\ProvidesExplFile{ctex-fontset-adobe2.def}
+ \ProvidesExplFile{ctex-fontset-adobe2.def}
   {\ExplFileDate}{2.5.6}{\ExplFileDescription}
 \setCJKmainfont  { AdobeSongStd-Light.otf }
   [

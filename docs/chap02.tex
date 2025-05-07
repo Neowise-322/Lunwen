@@ -1,154 +1,124 @@
                 \chapter{基本理论方法}
-
 \label{cha:sysu-thesis-contents-format-requirement}
-本征正交分解（Proper Orthogonal Decomposition, POD）作为一种高效的数学工具，能够为给定的函数空间或数据集合构建最优的基底系统。该方法的核心优势在于其生成的基函数能够以最小的维度捕获原始数据集中的主要能量特征，从而实现对复杂系统的高效表征。
-针对传统POD方法在计算效率方面的局限性，研究者提出了Snapshot POD这一改进算法。该算法通过引入快照采样技术，将原本需要处理的高维运算转化为低维特征值问题，使得计算复杂度显著降低。这种改进使得POD方法在实际工程应用中具备了更强的可行性。
-本章内容首先系统阐述经典POD方法的数学理论基础，包括其变分原理和最优性证明。随后详细推导Snapshot POD的数学表述，阐明其降维计算的核心思想。在此基础上，给出完整的POD基求解算法流程，并对其中涉及的特征值问题求解方法进行简要讨论，包括幂迭代法和QR分解等数值计算技术。
-\section{基本POD方法}
-假设存在一个标量场中的函数集合 \(\{u^i\}\)，其元素可以表示成自变量 \(x\) 的函数：\(u = u(x)\)，定义域为 \(0 \leq x \leq 1\)。将 \(u\) 投影到选定的一组基上，来更好地表示 \(\{u^i\}\) 中的每一个元素。为了推导方便，我们假设 \(u\) 属于希尔伯特内积空间（线性、无限维 \(L^2([0,1])\)）的平方可积函数，其内积定义为：
-\begin{equation}
-(f, g) = \int_0^1 f(x)g(x) \, dx \tag{2-1}
-\end{equation}
-在此，我们要在 \(L^2\) 中寻找一组最优的基 \(\{\phi_j(x)\}_{j=1}^n\)，并用其中有限个基表示上述函数集合中的“典型”元素：
-\begin{equation}
-u(x) = \sum_{j=1}^n a_j \phi_j(x) \tag{2-2}
-\end{equation}
-“典型”元素是引入平均算子 \(\langle \cdot \rangle = \lim_{N \to \infty} \frac{1}{N} \sum_{i=1}^N \cdot\)，并将其代替公式（2-1）中的积分。最优的基是指在使用相同数目基的情况下，该组基对于函数集合的表达结果要优于其它任何一组基。
 
-数学上求公式（2-2）中最优的一组基可以表示为求解函数在基上平均投影的一组基的最大值：
-\begin{equation}
-\max_{\phi \in L^2([0,1])} \frac{\left\langle |(u, \phi)|^2 \right\rangle}{\|\phi\|^2} \tag{2-3}
-\end{equation}
+\section{本征正交分解方法原理}
 
-其中 \(|\cdot|\) 表示模，\(\|\cdot\|\) 表示的范数定义为：\(\|f\| = \sqrt{(f, f)}\)。从公式（2-3）中可以看出只能得到一个最优的基，实际上，解该问题所产生的其它函数（对应于大量的局部最优情况）仍然是具有物理意义的，它们和最优的结果共同组成了所要求的 POD 基。
-上述问题等价于变分问题：在等式约束 \(\|\phi\| = 1\) 的情况下，求数函 \(\left|\left\langle u, \phi \right\rangle\right|^2\) 的极值。利用拉格朗日乘子法，该问题转化为：
-\begin{equation}
-J[\phi] = \left\langle \left| \left\langle u, \phi \right\rangle \right|^2 \right\rangle - \lambda \left( \|\phi\|^2 - 1 \right) \tag{2-4}
-\end{equation}
-
-存在极值的必要条件是对于任意的变里 \(\phi + \delta \psi \in L^2([0,1])\)，\(\delta \in \mathbb{R}\)，下式必须成立：
-\begin{equation}
-\left. \frac{d}{d\delta} J[\phi + \delta \psi] \right|_{\delta = 0} = 0 \tag{2-5}
-\end{equation}
-
-代入 (2-4) 式：
-\[
-\left. \frac{d}{d\delta} J[\phi + \delta \psi] \right|_{\delta = 0} = \left. \frac{d}{d\delta} \left[ \left\langle \left( u, \phi + \delta \psi \right) \left( \phi + \delta \psi, u \right) \right\rangle - \lambda \left( \left\langle \phi + \delta \psi, \phi + \delta \psi \right\rangle - 1 \right) \right] \right|_{\delta = 0}
-\]
-
-\[
-= \left\langle \left( u, \psi \right) \left( \phi, u \right) + \left( u, \phi \right) \left( \psi, u \right) \right\rangle - \lambda \left\langle \phi, \psi \right\rangle + \left\langle \psi, \phi \right\rangle
-\]
-
-\[
-= 2 \left[ \left\langle u, \psi \right\rangle \left\langle \phi, u \right\rangle - \lambda \left\langle \phi, \psi \right\rangle \right] = 0
-\]
-
-利用性质 \(\left\langle f, g \right\rangle = \left\langle g, f \right\rangle^*\)，再将平均算子 \(\left\langle \cdot \right\rangle\) 和 \(\int \cdot dx\) 重新排列，上式中括号内的部分可写为：
-\[
-\left\langle \int_0^1 u(x) \psi(x) dx \int_0^1 \phi(x') u(x') dx' \right\rangle - \lambda \int_0^1 \phi(x) \psi(x) dx = 0
-\]
-
-由于 \(\psi(x)\) 是任意变量，上式简化为：
-\begin{equation}
-\int_0^1 \left\langle u(x) u(x') \right\rangle \phi(x') dx' = \lambda \phi(x) \tag{2-6}
-\end{equation}
-
-因此，最优基 \(\{\phi_r(x)\}\) 就是积分方程 (2-6) 的特征函数，该方程的内核为平均自相关函数 \(\left\langle u(x) u(x') \right\rangle = R(x, x')\)。
-
-对于集合 \(\{u^i\}\) 由有限维的离散数据组成的情况，如 \(u\) 是 \(m\) 维列向量，相关函数变为 \(m \times m\) 的量积矩阵：
-\[
-\mathbf{R} = \left\langle u \otimes u \right\rangle
-\]
-
-该矩阵的特征向量就是 \(m\) 维空间中 \(\{u^i\}\) 的一组基。
-在复数域内引入算子 $\mathfrak{R}$：
-\[
-\mathfrak{R}\varphi = \int (u u^*) \varphi \, dx
-\]
-公式（2-6）可写为
-\begin{equation}
-\mathfrak{R}\varphi = \lambda \varphi \tag{2-7}
-\end{equation}
-\section{Snapshot POD}
-
-对于某一离散数据，虽然只要有限个 POD 基就可以很好的对其进行近似，但是求解 POD 问题需要求解一个阶数与原始问题相当的特征值问题，即自相关矩阵的特征值问题。求解高阶矩阵的特征值一般需要迭代求解，计算量很大，而且对于某些阶数很高的问题，甚至无法求解其特征值。针对基本 POD 方法的这个缺点，Sirovich 提出了 Snapshot POD 方法，可以大大降低自相关矩阵的阶数，更加利于 POD 方法的实际运用。
-
-假设有离散数据集合，该集合中每个序列的维数为 N，共有 M 个离散数据（即 M 个 Snapshot），如果使用基本 POD 方法，需要求解 \(N \times N\) 阶自相关矩阵的特征值问题，而使用 Sirovich 的 Snapshot POD 方法，只需要求解 \(M \times M\) 阶矩阵的特征值问题。在实际问题中，一般 \(M \ll N\)。由此可见，Snapshot POD 方法降低计算量的效果是非常明显的。
-
-如果 \(\{\phi\}\) 是离散数据（或称为采样解，Snapshot）集合 \(\{u^i\}_{i=1}^M\) 的一组基，则其中的某个基 \(\varphi\) 可以表示成采样解的线性组合：
+给定 $n$ 维空间中的 $m$ 个快照向量 $\mathbf{s}_i \in \mathbb{R}^n$ 构成数据矩阵 $S = [\mathbf{s}_1\ \mathbf{s}_2\ \cdots\ \mathbf{s}_m]$，POD 方法通过求解以下优化问题构建最优正交基：
 
 \begin{equation}
-\varphi = \sum_{i=1}^M a_i u^i \tag{2-8}
+    \max_{\{\phi_j\}} \sum_{j=1}^k \mathbb{E}[(\mathbf{s},\phi_j)^2] \quad \text{s.t.} \quad \phi_i^T\phi_j = \delta_{ij}
+    \label{eq:pod_optimization}
 \end{equation}
 
-系数 \(a_i\) 是待求量。
+该优化问题的物理意义在于寻找一组正交基，使得这些基向量能够捕捉数据中最大的方差。换句话说，POD 方法试图用尽可能少的基向量来描述数据的主要特征，从而实现降维。
 
-在采样解满足各态历经并且互不相关的前提条件下，公式（2-6）中的自相关函数可以写为：
+引入拉格朗日乘子 $\lambda_j$ 处理正交约束：
 
 \begin{equation}
-\mathbf{R} = \lim_{M \to \infty} \frac{1}{M} \sum_{i=1}^M u^i \otimes u^i \tag{2-9}
+    \mathcal{L} = \sum_{j=1}^k \phi_j^T S S^T \phi_j - \sum_{j=1}^k \lambda_j (\phi_j^T\phi_j - 1)
+    \label{eq:lagrangian}
 \end{equation}
 
-如果采样解取得足够合理，数目足够多，上式还可以进一步近似为：
-\begin{equation}
-\mathbf{R} \approx \frac{1}{M} \sum_{i=1}^M \mathbf{u}^i \otimes \mathbf{u}^i \tag{2-10}
-\end{equation}
-
-将（2-8）式代入（2-6）结合（2-10），得：
+对 $\phi_j$ 求导并令导数为零，得到特征方程：
 
 \begin{equation}
-\left( \frac{1}{M} \sum_{i=1}^M \mathbf{u}^i \otimes \mathbf{u}^i, \sum_{i=1}^M a_i \mathbf{u}^i \right) = \lambda \sum_{i=1}^M a_i \mathbf{u}^i \tag{2-11}
+    \frac{\partial \mathcal{L}}{\partial \phi_j} = 2S S^T \phi_j - 2\lambda_j \phi_j = 0 \Rightarrow S S^T \phi_j = \lambda_j \phi_j
+    \label{eq:eigen_equation}
 \end{equation}
 
-对等式左边的内积项进行整理，得：
+这表明 POD 基向量实际上是数据协方差矩阵的特征向量，对应的特征值衡量了每个基向量所包含的信息量。
+
+\subsection{经典 POD 方法}
+经典 POD (Classical POD) 是由 Lumley 在 1967 年提出的，它是最直接的 POD 实现方式。
+\begin{equation}
+R \phi_j = \lambda_j \phi_j, \quad \phi_j \in \mathbb{R}^n, \lambda_1 \geq \lambda_2 \geq \cdots \geq \lambda_n \geq 0
+\end{equation}
+
+其中，$R$ 代表协方差矩阵：
 
 \begin{equation}
-\sum_{i=1}^M \left[ \sum_{j=1}^M \left( \frac{1}{M} (\mathbf{u}^j, \mathbf{u}^i) a_j \right) \mathbf{u}^i \right] \tag{2-12}
+R = \frac{1}{m} \sum_{i=1}^m s_i s_i^T = S S^T \in \mathbb{R}^{n \times n}
 \end{equation}
 
-所求的系数满足下述方程：
+公式 (2.4) 所求得的特征向量 $\phi_j$ 就是 POD 基，它们是单位正交的，这也意味着：
+\begin{equation}
+\phi_j^T \phi_k = 
+\begin{cases} 
+0, & j \neq k \\
+1, & j = k 
+\end{cases}
+\end{equation}
+
+特征值 $\lambda_j$ 越大，就说明其对应的 POD 基 $\phi_j$ 包含这个矩阵 $S$ 的信息越多。将 POD 基按照其对应的特征值大小排序后，就可以得到有序的一组单位正交 POD 基。通常情况下，往往只保留前 k 个基来表达原始数据，在 $k$ 的选择上通常使用能量阈值法，设阈值为 $\epsilon_\sigma$，当满足式 (2.7) 时，确定 k 值，$\epsilon_\sigma$ 由设计者决定：
 
 \begin{equation}
-\sum_{i=1}^M \left( \frac{1}{M} (\mathbf{u}^i, \mathbf{u}^n) a_i \right) = \lambda a_n \quad n = 1, 2, \ldots, M \tag{2-13}
+\frac{\sum_{j=1}^k \lambda_j}{\sum_{j=1}^n \lambda_j} \geq \epsilon_\sigma
 \end{equation}
 
-所有，由 Snapshot 方法得到的自相关矩阵 \(\mathbf{R}\) 的元素表达式为：
+确定使用数量 k 后，用 POD 基来表达数据向量空间中的任意向量可得：
 
 \begin{equation}
-R_{n,i} = \frac{1}{M} (\mathbf{u}^i, \mathbf{u}^n) \tag{2-14}
+s \approx \sum_{j=1}^k \beta_j \phi_j
 \end{equation}
 
-求解特征值问题：
+其中，系数 $\beta_j$ 可以通过式 (2.9) 求出：
 
 \begin{equation}
-\mathbf{R} \mathbf{a} = \lambda \mathbf{a} \tag{2-15}
+\beta_j = s^T \phi_j
+\end{equation}
+\subsection{快照 POD }
+快照 POD 方法 (Snapshot POD) 是 Sirovich 等人提出的，也是目前气体设计领域最常用的 POD 方法。经典 POD 求解的实际上是 $R = S S^T$ 的特征值分解问题，$R$ 的大小是 $n \times n$。当 $n$ 的数值较大时，特征值分解所需消耗的时间将会显著增加。因此，当出现 $m \ll n$ 的时候就可以采用快照 POD 方法，快照 POD 方法求解的问题是：
+\begin{equation}
+S^T S \psi_j = \sigma_j \psi_j, \quad \psi_j \in \mathbb{R}^m, \sigma_1 \geq \sigma_2 \geq \cdots \geq \sigma_m \geq 0
 \end{equation}
 
-第 \(k\) 个 POD 基可以表示为：
+其中，$S^T S$ 是一个大小为 $m \times m$ 的协方差矩阵。在进行特征值分解时，$S^T S$ 和 $S S^T$ 的特征值都是相同的。另外，式 (2.10) 是从数学上对快照 POD 的描述，因此省去了 $\frac{1}{m}$ 的系数，
+
+求出来的特征向量 $\psi_j$ 可以通过式 (2.11) 转换为 POD 基 $\phi_j$：
+
+\begin{equation}\phi_{j}=S\psi_{j}\frac{1}{\sqrt{\lambda_{j}}}\in\mathbb{R}^{n},\quad j=1,2,\cdots,m\end{equation}
+
+用矩阵形式描述为：
 
 \begin{equation}
-\phi^k = \sum_{i=1}^M a_i^k \mathbf{u}^i \tag{2-16}
+\Phi = S \Psi \Sigma^{-1/2}
 \end{equation}
 
-其中，\(a_i^k\) 表示（2-15）中对应于第 \(k\) 个特征值 \(\lambda_k\) 的特征向量的第 \(i\) 个元素。
+其中，$\Phi = [\phi_1 \phi_2 \cdots \phi_m] \in \mathbb{R}^{n \times m}$，$\Psi = [\psi_1 \psi_2 \cdots \psi_m] \in \mathbb{R}^{m \times m}$。
+\subsection{SVD-POD}
+对于数据矩阵 $S \in \mathbb{R}^{n \times m}$，实际上可以直接进行 SVD 分解：
 
-（1）使用 Snapshot 方法计算 POD 基的简要计算流程如下：
+\begin{equation}
+S = \Phi \Sigma \Psi^T
+\end{equation}
 
-（2）获得相关物理问题的 \(M\) 个采样解；
+其中，$U$ 的列向量称为左奇异向量，$\Sigma$ 是奇异值矩阵，$V$ 的列向量称为右奇异向量。经济型 SVD 分解仅保留与数据秩相关的部分，避免计算冗余的零奇异值。
 
-（3）计算 \(M \times M\) 阶的自相关矩阵 \(\mathbf{R}\)；
+左奇异向量矩阵 $U$ 即为 POD 基：
 
-（4）求解 \(\mathbf{R}\) 的特征值问题，并将特征值按从大到小排序，对应特征向量随之调整；
+\begin{equation}
+    \sigma_j^2 = m\lambda_j, \quad \phi_j = U(:,j)
+    \label{eq:svd_relation}
+\end{equation}
 
-（5）根据公式（2-16）计算 POD 基。
+这表明 SVD 分解中的左奇异向量与 POD 基在数学上是等价的，而奇异值的平方与 POD 特征值成正比。
+
+通过矩阵分解理论可证：
+
+\begin{equation}
+    \mathbf{R} = \frac{1}{m}U\Sigma^2 U^T \Rightarrow U \equiv \Phi
+    \label{eq:equivalence_proof}
+\end{equation}
+
+这表明经典 POD 方法中的协方差矩阵分解与 SVD 分解中的左奇异向量矩阵是相同的，从而证明了两种方法的等价性。
+
 
 \section{矩阵特征值求解方法}
 
 在科学技术的应用领域中，许多问题都可以归结为求解一个特征系统。如动力学系统和机构振动中的振动问题，求系统的频率与振型等等。矩阵特征值问题的数学表述如下：
 
 设 \(\mathbf{A}\) 为 \(n\) 阶实矩阵，若有 \(n\) 维非零向量 \(\mathbf{x}\)，有数 \(\lambda\) 使\begin{equation}
-\mathbf{A}\mathbf{x} = \lambda \mathbf{x} \tag{2-17}
+\mathbf{A}\mathbf{x} = \lambda \mathbf{x} 
 \end{equation}
 
 则称 \(\lambda\) 为 \(\mathbf{A}\) 的特征值，\(\mathbf{x}\) 为相应于 \(\lambda\) 的特征向量。线性代数理论中式通过求解特征多项式 \(\det(\mathbf{A} - \lambda \mathbf{I}) = 0\) 求得特征值，进而求得特征向量。当矩阵的阶数较高时，这种方法极为困难，所以常用数值方法来求解特征问题。常用的数值方法可以分为迭代法和变换法两种。变换法适用于中小型矩阵，常用的有适用于实对称矩阵的 Jacobi 方法，奇异值分解方法等等。
@@ -165,18 +135,19 @@ Jacobi 变换方法是求实对称矩阵全部特征值及对应特征向量的�
 \mathbf{A}_0 &= \mathbf{A} \\
 \mathbf{A}_{k+1} &= \mathbf{R}_{k+1}^T \mathbf{A}_k \mathbf{R}_{k+1} \quad k = 0, 1, 2, \ldots
 \end{aligned}
-\right. \tag{2-18}
+\right. 
 \end{equation}
 
 最终对角阵的对角元就是该矩阵的近似特征值，由各个正交变换阵的乘积可得对应的特征向量。
 
 一般选取 Givens 旋转矩阵做相似变换阵。该矩阵定义如下：
 
-$$\mathbf{R}(p,q,\theta)=\begin{bmatrix} 1 & & & & & & & \\ & \ddots & & & & & & \\ & & 1 & & & & & \\ & & & \cos\theta & \cdots & \sin\theta & & \\ & & & \vdots & \vdots & \vdots & & \\ & & & -\sin\theta & \cdots & \cos\theta & & \\ & & & & & & \ddots & \\ & & & & & & & 1 \\ \end{bmatrix}$$
 
+\begin{equation}
+\mathbf{R}(p,q,\theta)=\begin{bmatrix} 1 & & & & & & & \\ & \ddots & & & & & & \\ & & 1 & & & & & \\ & & & \cos\theta & \cdots & \sin\theta & & \\ & & & \vdots & \vdots & \vdots & & \\ & & & -\sin\theta & \cdots & \cos\theta & & \\ & & & & & & \ddots & \\ & & & & & & & 1 \\\end{bmatrix} 
+\end{equation}
 它是在单位阵 \(\mathbf{I}\) 的 \(p\) 行、\(q\) 行和 \(p\) 列、\(q\) 列的四个交叉位置上分别置 \(\cos\theta\)，\(\sin\theta\)，\(-\sin\theta\) 和 \(\cos\theta\) 而成的。容易验证旋转矩阵是正交矩阵，即 \(\mathbf{R}^T(p, q, \theta) = \mathbf{R}^{-1}(p, q, \theta)\)，所以用它做相似变换阵时十分方便。
 
-综上，Jacobi 变换法的计算步骤为：
 综上，Jacobi 变换法的计算步骤为：
 
 \begin{enumerate}
@@ -198,13 +169,13 @@ $$\mathbf{R}(p,q,\theta)=\begin{bmatrix} 1 & & & & & & & \\ & \ddots & & & & & &
 对于实矩阵 \(\mathbf{A} \in \mathbb{R}^{m \times n}\)，\(\mathbf{A}^T \mathbf{A}\) 的特征值为 \(\lambda_1 \geq \lambda_2 \geq \cdots \geq \lambda_n \geq 0\)，则称 \(\sigma_i = \sqrt{\lambda_i}\)（\(i = 1, 2, \ldots, n\)）为 \(\mathbf{A}\) 的奇异值。对于上述矩阵 \(\mathbf{A}\)，存在 \(m\) 阶正交矩阵 \(\mathbf{U}\) 和 \(n\) 阶正交矩阵 \(\mathbf{V}\)，使得：
 
 \begin{equation}
-\mathbf{U}^T \mathbf{A} \mathbf{V} = \begin{pmatrix} \mathbf{\Sigma} & \mathbf{0} \\ \mathbf{0} & \mathbf{0} \end{pmatrix} \tag{2-20}
+\mathbf{U}^T \mathbf{A} \mathbf{V} = \begin{pmatrix} \mathbf{\Sigma} & \mathbf{0} \\ \mathbf{0} & \mathbf{0} \end{pmatrix} 
 \end{equation}
 
 其中 \(\mathbf{\Sigma} = \text{diag}(\sigma_1, \sigma_2, \ldots, \sigma_r)\)，将上式改写为：
 
 \begin{equation}
-\mathbf{A} = \mathbf{V} \begin{pmatrix} \mathbf{\Sigma} & \mathbf{0} \\ \mathbf{0} & \mathbf{0} \end{pmatrix} \mathbf{U}^T \tag{2-21}
+\mathbf{A} = \mathbf{V} \begin{pmatrix} \mathbf{\Sigma} & \mathbf{0} \\ \mathbf{0} & \mathbf{0} \end{pmatrix} \mathbf{U}^T 
 \end{equation}
 
 称之为 \(\mathbf{A}\) 的奇异值分解。
@@ -212,12 +183,12 @@ $$\mathbf{R}(p,q,\theta)=\begin{bmatrix} 1 & & & & & & & \\ & \ddots & & & & & &
 设 \(\mathbf{A} \in \mathbb{R}^{n \times n}\) 为实对称矩阵，其特征值为 \(\lambda_i(\mathbf{A})\)（\(i = 1, 2, \ldots, n\)），因为对实对称矩阵有 \(\mathbf{A} = \mathbf{A}^T\)，所以：
 
 \begin{equation}
-\lambda_i(\mathbf{A}^T \mathbf{A}) = \lambda_i(\mathbf{A}^2) = \left[ \lambda_i(\mathbf{A}) \right]^2 \quad (i = 1, 2, \ldots, n) \tag{2-22}
+\lambda_i(\mathbf{A}^T \mathbf{A}) = \lambda_i(\mathbf{A}^2) = \left[ \lambda_i(\mathbf{A}) \right]^2 \quad (i = 1, 2, \ldots, n) 
 \end{equation}
 A 的奇异值 \(\sigma_i = \sqrt{\lambda_i(\mathbf{A}^T \mathbf{A})} = \lambda_i(\mathbf{A})\)（\(i = 1, 2, \ldots, n\)）。至此，我们可以知道，对于实对称矩阵，它的奇异值和它的特征值是相同的。只要得到 A 的奇异值分解：
 
 \begin{equation}
-\mathbf{A} = \mathbf{V}^T \mathbf{\Sigma} \mathbf{U} \tag{2-23}
+\mathbf{A} = \mathbf{V}^T \mathbf{\Sigma} \mathbf{U} 
 \end{equation}
 
 则 A 的特征值为 \(\mathbf{\Sigma}\) 中的对角元素，对应特征向量为 \(\mathbf{V}^T\) 的列向量。
@@ -229,24 +200,24 @@ A 的奇异值 \(\sigma_i = \sqrt{\lambda_i(\mathbf{A}^T \mathbf{A})} = \lambda_
 从欧拉运动描述的观点出发，在任何有限控制体内的流动，质量、动量、能量所发生的暂时性变化，必须通过流入流出控制体的通量和控制体内部的当地变化来平衡。对于大多空气动力学中的应用来说，流动内部不存在热源或质量源，通常情况下，体积力（或彻体力）的影响，例如重力是可以忽略不计的。于是，控制方程式可以写成如下积分形式：
 
 \begin{equation}
-\frac{\partial}{\partial t} \iiint_V \mathbf{W} \, dV + \iint_S \mathbf{F} \cdot \mathbf{n} \, dS = 0 \tag{4-1}
+\frac{\partial}{\partial t} \iiint_V \mathbf{W} \, dV + \iint_S \mathbf{F} \cdot \mathbf{n} \, dS = 0 
 \end{equation}
 
 式中，\(V\) 是一个有封闭边界 \(S\) 的任意控制体，\(\mathbf{n}\) 为边界的法向量；指向朝外，状态变量 \(\mathbf{W}\) 的表达式为：
 
 \begin{equation}
-\mathbf{W} = (\rho, \rho u, \rho v, \rho E)^T \tag{4-2}
+\mathbf{W} = (\rho, \rho u, \rho v, \rho E)^T 
 \end{equation}
 
 其中 \(\rho\) 为密度，\(u, v\) 是两个个笛卡尔速度分量，\(E\) 是单位质量流体的总能量，表达式为：
 
 \begin{equation}
-E = e + \frac{1}{2}(u^2 + v^2) \tag{4-3}
+E = e + \frac{1}{2}(u^2 + v^2) 
 \end{equation}
 
 其中 \(e\) 是内能，方程（4-1）中的矢通量 \(\mathbf{F}\) 可分解成对流项（无粘部分）\(\mathbf{F}_c\) 和耗散项（粘性和热传递部分）\(\mathbf{F}_d\)，即：
 \begin{equation}
-\mathbf{F} = \mathbf{F}_c + \mathbf{F}_d \tag{4-4}
+\mathbf{F} = \mathbf{F}_c + \mathbf{F}_d 
 \end{equation}
 
 对流通量表达式为：
@@ -258,7 +229,7 @@ E = e + \frac{1}{2}(u^2 + v^2) \tag{4-3}
 (\rho u^2 + p) i & \rho u v j \\
 \rho v u i & (\rho v^2 + p) j \\
 (\rho E u + \rho u) i & (\rho E v + \rho v) j
-\end{bmatrix} \tag{4-5}
+\end{bmatrix} 
 \end{equation}
 
 其中，\(i, j\) 是直角坐标系的单位向量，通量的粘性应力项和热扩散的状态方程为：
@@ -270,14 +241,14 @@ E = e + \frac{1}{2}(u^2 + v^2) \tag{4-3}
 \tau_{x,i} & \tau_{x,j} \\
 \tau_{y,i} & \tau_{y,j} \\
 (u \tau_x + v \tau_y - q_x) i & (u \tau_x + v \tau_y - q_y) j
-\end{bmatrix} \tag{4-6}
+\end{bmatrix} 
 \end{equation}
 
 各个方向的剪应力及热通量可被定义为：
 \begin{align}
-\tau_{x,i} &= 2(\mu + \mu_t) \frac{\partial u}{\partial x} - \frac{2}{3} (\mu + \mu_t) \left( \frac{\partial u}{\partial x} + \frac{\partial v}{\partial y} \right) \tag{4-7} \\
+\tau_{x,i} &= 2(\mu + \mu_t) \frac{\partial u}{\partial x} - \frac{2}{3} (\mu + \mu_t) \left( \frac{\partial u}{\partial x} + \frac{\partial v}{\partial y} \right) \\
 \tau_{y,i} &= 2(\mu + \mu_t) \frac{\partial v}{\partial y} - \frac{2}{3} (\mu + \mu_t) \left( \frac{\partial u}{\partial x} + \frac{\partial v}{\partial y} \right) \\
-\tau_{x,j} &= \tau_{x,i} = (\mu + \mu_t) \left( \frac{\partial u}{\partial y} + \frac{\partial v}{\partial x} \right) \tag{4-7} \\
+\tau_{x,j} &= \tau_{x,i} = (\mu + \mu_t) \left( \frac{\partial u}{\partial y} + \frac{\partial v}{\partial x} \right)  \\
 q_x &= -(k + k_t) \frac{\partial T}{\partial x} \\
 q_y &= -(k + k_t) \frac{\partial T}{\partial y}
 \end{align}
@@ -287,55 +258,212 @@ q_y &= -(k + k_t) \frac{\partial T}{\partial y}
 总焓可以表示为：
 
 \begin{equation}
-H = h + \frac{1}{2}(u^2 + v^2) \tag{4-8}
+H = h + \frac{1}{2}(u^2 + v^2)
 \end{equation}
 
 完全气体的定义和关系由下面的状态方程给出：
 
 \begin{equation}
-e = c_v T, \quad h = c_p T, \quad R = c_p - c_v, \quad \gamma = \frac{c_p}{c_v} \tag{4-9}
+e = c_v T, \quad h = c_p T, \quad R = c_p - c_v, \quad \gamma = \frac{c_p}{c_v} 
 \end{equation}
 
 理想气体状态方程如下：
 
 \begin{equation}
-\frac{p}{\rho} = RT \tag{4-10}
+\frac{p}{\rho} = RT 
 \end{equation}
 压力和总焓可被表示为：
 
 \begin{equation}
-H = E + \frac{p}{\rho} \tag{4-11}
+H = E + \frac{p}{\rho} 
 \end{equation}
 
 即
 \begin{equation}
-p = (\gamma - 1) \rho \left[ E - \frac{1}{2}(u^2 + v^2) \right] \tag{4-12}
+p = (\gamma - 1) \rho \left[ E - \frac{1}{2}(u^2 + v^2) \right] 
 \end{equation}
 
 其中，\(c_p\) 和 \(c_v\) 分别表示恒压和恒容比热，\(\gamma\) 是比热比，\(R\) 是气体常数，温度 \(T\) 由此给出：
 \begin{equation}
-T = \frac{\gamma}{c_v (\gamma - 1) \rho} p \tag{4-13}
+T = \frac{\gamma}{c_v (\gamma - 1) \rho} p 
 \end{equation}
 
 由 Sutherland's 方程得到层流粘性系数公式：
 
 \begin{equation}
-\frac{\mu}{\mu_\infty} = \left( \frac{T}{T_\infty} \right)^{\frac{3}{2}} \frac{T_\infty + 110.3}{T + 110.3} \tag{4-14}
+\frac{\mu}{\mu_\infty} = \left( \frac{T}{T_\infty} \right)^{\frac{3}{2}} \frac{T_\infty + 110.3}{T + 110.3} 
 \end{equation}
 
 最终，完全气体声速为：
 
 \begin{equation}
-a = \sqrt{\frac{\gamma p}{\rho}} \tag{4-15}
+a = \sqrt{\frac{\gamma p}{\rho}} 
 \end{equation}
 
 马赫数为：
 
 \begin{equation}
-M = \frac{\sqrt{u^2 + v^2 + w^2}}{a} \tag{4-16}
+M = \frac{\sqrt{u^2 + v^2 + w^2}}{a}
 \end{equation}
 
 该方程在数值求解时：空间离散使用格心格式的有限体积法，时间推进采用显式 5 步龙格库塔迭代方法。使用 \(k-\omega\) 端流模型。物面边界使用绝热的无滑移边界条件，远场边界使用无反射边界条件。加入人工粘性项以保证算法的稳定及抑制激波附近的震荡。使用隐式残值光顺和多重网格的加速收敛技术。
+
+\section{单变量三次样条插值法}
+\subsection{数学描述}
+考虑定义在区间$[a,b]$上的三次样条插值问题。给定节点$\{x_0,x_1,...,x_n\}$及其对应函数值$\{f(x_i)\}$，要求构造分段三次多项式函数$S(x)$满足：
+
+\begin{enumerate}
+    \item 在子区间$[x_i, x_{i+1}]$上的局部表达式为：
+    \begin{equation}
+        S_i(x) = a_i + b_i(x-x_i) + c_i(x-x_i)^2 + d_i(x-x_i)^3
+    \end{equation}
+    \item 整体满足$C^2$连续性：
+    \begin{align}
+        \lim_{x\to x_i^+} S^{(k)}(x) &= \lim_{x\to x_i^-} S^{(k)}(x), \quad k=0,1,2
+    \end{align}
+    \item 自然边界条件：
+    \begin{equation}
+        S''(x_0) = S''(x_n) = 0
+    \end{equation}
+\end{enumerate}
+\subsection{系数求解}
+令$M_i = S''(x_i)$，根据三次多项式的二阶导数特性，可得递推关系：
+\begin{equation}
+    \frac{h_{i-1}}{6}M_{i-1} + \frac{h_{i-1}+h_i}{3}M_i + \frac{h_i}{6}M_{i+1} = \frac{f(x_{i+1})-f(x_i)}{h_i} - \frac{f(x_i)-f(x_{i-1})}{h_{i-1}}
+\end{equation}
+其中$h_i = x_{i+1}-x_i$。该方程组可表示为三对角矩阵形式：
+\begin{equation}
+    \begin{pmatrix}
+        2 & \lambda_1 & 0 & \cdots & 0 \\
+        \mu_2 & 2 & \lambda_2 & \cdots & 0 \\
+        \vdots & \ddots & \ddots & \ddots & \vdots \\
+        0 & \cdots & \mu_{n-1} & 2 & \lambda_{n-1} \\
+        0 & \cdots & 0 & \mu_n & 2
+    \end{pmatrix}
+    \begin{pmatrix}
+        M_1 \\ M_2 \\ \vdots \\ M_{n-1} \\ M_n
+    \end{pmatrix}
+    = \mathbf{b}
+\end{equation}
+其中$\mu_i = h_{i-1}/(h_{i-1}+h_i)$，$\lambda_i = 1-\mu_i$，右端项$\mathbf{b}$由差商计算。通过Thomas算法可高效求解该方程组。
+
+对于形如$A\mathbf{M} = \mathbf{b}$的三对角方程组：
+\[
+\begin{pmatrix}
+    b_1 & c_1 & 0 & \cdots & 0 \\
+    a_2 & b_2 & c_2 & \cdots & 0 \\
+    0 & \ddots & \ddots & \ddots & \vdots \\
+    \vdots & & a_{n-1} & b_{n-1} & c_{n-1} \\
+    0 & \cdots & 0 & a_n & b_n
+\end{pmatrix}
+\begin{pmatrix}
+    M_1 \\ M_2 \\ \vdots \\ M_{n-1} \\ M_n
+\end{pmatrix}
+= 
+\begin{pmatrix}
+    d_1 \\ d_2 \\ \vdots \\ d_{n-1} \\ d_n
+\end{pmatrix}
+\]
+采用追赶法（Thomas算法）进行高效求解，其计算步骤如下：
+
+\begin{enumerate}
+    \item {向前消元}：计算修正系数
+    \begin{align}
+        c'_1 &= \frac{c_1}{b_1} \\
+        d'_1 &= \frac{d_1}{b_1} \\
+        c'_i &= \frac{c_i}{b_i - a_i c'_{i-1}}, \quad i=2,...,n-1 \\
+        d'_i &= \frac{d_i - a_i d'_{i-1}}{b_i - a_i c'_{i-1}}, \quad i=2,...,n
+    \end{align}
+
+    \item{向后回代}：求解节点二阶导数
+    \begin{align}
+        M_n &= d'_n \\
+        M_i &= d'_i - c'_i M_{i+1}, \quad i=n-1,n-2,...,1
+    \end{align}
+\end{enumerate}
+
+在三次样条插值的具体场景中：
+\begin{itemize}
+    \item 主对角线元素：$b_i = \frac{h_{i-1} + h_i}{3}$
+    \item 次对角线元素：$a_i = \frac{h_{i-1}}{6}$
+    \item 超对角线元素：$c_i = \frac{h_i}{6}$
+    \item 右端项：$d_i = \frac{f(x_{i+1}) - f(x_i)}{h_i} - \frac{f(x_i) - f(x_{i-1})}{h_{i-1}}$
+\end{itemize}
+
+该算法的时间复杂度为$O(n)$，显著优于高斯消元法的$O(n^3)$，特别适用于大规模网格计算\cite{deboor1978}。
+\section{双变量三次样条插值法}
+\subsection{基本定义与条件}
+设矩形区域$U = [a,b] \times [c,d]$被划分为$m \times n$个网格，双变量三次样条插值函数$S(x,y)$需满足：
+\begin{enumerate}
+    \item {局部双三次性}：在子区域$[x_i,x_{i+1}] \times [y_j,y_{j+1}]$内，$S(x,y)$为双三次多项式
+    \item{全局光滑性}：$S(x,y) \in C^{2,2}(U)$，即二阶混合偏导数连续
+    \item {插值条件}：$S(x_i,y_j) = z_{ij},\ \forall i=0,1,...,m; j=0,1,...,n$
+\end{enumerate}
+\subsection{张量积构造方法}
+基于一维三次样条的张量积扩展，构造方法可分两步实现：
+
+\begin{enumerate}
+    \item 固定$y = y_j$，构造$x$方向三次样条：
+    \begin{equation}
+        S_j(x) = \sum_{k=0}^3 a_{jk}(x-x_i)^k,\quad x \in [x_i,x_{i+1}]
+    \end{equation}
+    系数$a_{jk}$通过以下条件确定：
+    \begin{align}
+        S_j(x_i) &= z_{ij} \\
+        S_j'(x_i^+) &= S_j'(x_i^-) \\
+        S_j''(x_i^+) &= S_j''(x_i^-)
+    \end{align}
+    
+    \item 对每个$x_i$构造$y$方向样条：
+    \begin{equation}
+        S_i(y) = \sum_{l=0}^3 b_{il}(y-y_j)^l,\quad y \in [y_j,y_{j+1}]
+    \end{equation}
+    最终的双变量样条表示为：
+    \begin{equation}
+        S(x,y) = \sum_{i=1}^m \sum_{j=1}^n \alpha_{ij} B_i^{(3)}(x) B_j^{(3)}(y)
+    \end{equation}
+    其中$B^{(3)}$为三次B样条基函数\cite{deboor1978}。
+\end{enumerate}
+\subsection{连续性条件}
+为保证$C^{2,2}$连续性，需满足以下条件：
+\begin{enumerate}
+    \item 函数值连续：$\lim_{\epsilon \to 0} S(x_i \pm \epsilon, y_j) = z_{ij}$
+    \item 一阶偏导连续：
+    \begin{equation}
+        \frac{\partial S}{\partial x}\bigg|_{(x_i^+,y_j)} = \frac{\partial S}{\partial x}\bigg|_{(x_i^-,y_j)}
+    \end{equation}
+    \item 二阶混合偏导连续：
+    \begin{equation}
+        \frac{\partial^2 S}{\partial x \partial y}\bigg|_{(x_i^+,y_j^+)} = \frac{\partial^2 S}{\partial x \partial y}\bigg|_{(x_i^-,y_j^-)}
+    \end{equation}
+\end{enumerate}
+\subsection{算法实现}
+核心算法流程如下：
+\begin{enumerate}
+    \item 输入：网格节点$\{(x_i,y_j)\}_{i,j=0}^{m,n}$，对应函数值$\{z_{ij}\}$
+    \item 对每个$y_j$，求解三对角方程组：
+    \begin{equation}
+        \begin{bmatrix}
+        2 & 1 & & \\
+        1 & 4 & 1 & \\
+        & \ddots & \ddots & \ddots \\
+        & & 1 & 2
+        \end{bmatrix}
+        \begin{bmatrix}
+        M_{1j} \\ M_{2j} \\ \vdots \\ M_{mj}
+        \end{bmatrix}
+        = 6
+        \begin{bmatrix}
+        \frac{z_{1j}-z_{0j}}{h_1} - \frac{z_{0j}-z_{-1j}}{h_0} \\
+        \vdots \\
+        \frac{z_{mj}-z_{m-1j}}{h_m} - \frac{z_{m-1j}-z_{m-2j}}{h_{m-1}}
+        \end{bmatrix}
+    \end{equation}
+    其中$M_{ij}$为二阶导数在节点处的值
+    \item 类似地构造$y$方向样条
+    \item 合成双变量样条表达式
+\end{enumerate}
+
 
 % \subsection{正文}
 
