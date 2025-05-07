@@ -83,11 +83,11 @@ POD 方法最早由 Kosambi 于1943年提出\cite{Kosambi1943}，经过多年的
 
         % 创建节点
         \node (start) [startend] {开始};
-        \node (data) [process, below of=start] {CFD软件获取多攻角流场数据};
+        \node (data) [process, below of=start] {CFD软件获取流场数据};
         \node (preprocess) [process, below of=data] {数据标准化处理};
         \node (pod) [process, below of=preprocess] {POD分解};
         \node (mode) [process, below of=pod] {筛选主导模态（累计能量占比>95\%）};
-        \node (interpolation) [process, below of=mode] {三次样条插值建立映射关系};
+        \node (interpolation) [process, below of=mode] {插值建立映射关系};
         \node (model) [process, below of=interpolation] {构建流场重构模型};
         \node (validation) [process, below of=model] {多工况对比实验验证};
         \node (end) [startend, below of=validation] {结束};
