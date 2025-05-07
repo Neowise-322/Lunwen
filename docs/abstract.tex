@@ -1,0 +1,20 @@
+%%
+% 摘要信息
+% 本文档中前缀"c-"代表中文版字段, 前缀"e-"代表英文版字段
+% 摘要内容应概括地反映出本论文的主要内容，主要说明本论文的研究目的、内容、方法、成果和结论。要突出本论文的创造性成果或新见解，不要与引言相 混淆。语言力求精练、准确，以 300—500 字为宜。
+% 在摘要的下方另起一行，注明本文的关键词（3—5 个）。关键词是供检索用的主题词条，应采用能覆盖论文主要内容的通用技术词条(参照相应的技术术语 标准)。按词条的外延层次排列（外延大的排在前面）。摘要与关键词应在同一页。
+% modifier: 黄俊杰(huangjj27, 349373001dc@gmail.com)
+% update date: 2017-04-15
+%%
+
+\cabstract{
+本研究提出了一种创新的流场快速预测方法，通过结合本征正交分解（POD）降阶模型与三次样条插值技术，实现了 NACA0012 翼型跨工况流场的高精度重构。研究从希尔伯特空间变分原理出发，建立了基于 Snapshot POD 的自适应基函数生成框架，成功将流场维度降低了 3 个数量级。针对传统 POD 方法在参数外推中的局限性，提出了基于三次样条插值的基系数连续映射模型，有效解决了非采样工况下的模态耦合问题。研究采用开源 CFD 软件 OpenFOAM 构建了包含多种攻角工况的高保真全阶模型（FOM）数据库，通过 POD 方法提取流场主导模态并建立低维特征空间。进一步引入三次样条插值技术，构建了完整的 POD 降阶模型（POD-ROM）流场重构框架。数值实验结果表明，该方法在保证最大相对误差不超过 5\% 的前提下，计算效率较传统 CFD 方法提升了两个数量级。研究成果在计算效率和预测精度方面均表现出显著优势，具有重要的工程应用价值，为无人机防除冰系统设计及气动性能优化等工程应用提供了有力的技术支撑。
+}
+% 中文关键词(每个关键词之间用“，”分开,最后一个关键词不打标点符号。)
+\ckeywords{本征正交分解，降阶模型，流场重构，NACA0012翼型，三次样条插值，计算流体力学}
+\eabstract{
+    This study innovatively combines Proper Orthogonal Decomposition (POD) reduced-order modeling with cubic spline interpolation to achieve high-precision reconstruction of the NACA0012 airfoil's flow field across conditions. Starting from the variational principle in Hilbert space, the study established a Snapshot POD-based framework for adaptive basis function generation, reducing the flow field dimension by three orders of magnitude. To address the limitations of traditional POD in parameter extrapolation, the study proposed a continuous mapping model of basis coefficients based on cubic spline interpolation, effectively resolving modal coupling issues under unsampled conditions. Using the open-source CFD software OpenFOAM, the study constructed a high-fidelity full-order model (FOM) database covering various angle-of-attack conditions. By extracting dominant flow field modes via POD and constructing a low-dimensional feature space, the study further integrated cubic spline interpolation to build a complete POD reduced-order model (POD-ROM) framework for flow field reconstruction. Numerical experiments demonstrated that this method achieves a maximum relative error of no more than 5\%, while enhancing computational efficiency by two orders of magnitude compared to traditional CFD methods. The research findings offer substantial advantages in computational efficiency and prediction accuracy, hold significant engineering value, and provide robust technical support for engineering applications such as UAV anti-icing system design and aerodynamic performance optimization.
+}
+% 英文文关键词(每个关键词之间用,分开, 最后一个关键词不打标点符号。)
+\ekeywords{Proper Orthogonal Decomposition, reduced-order modeling, flow field reconstruction, NACA0012 airfoil, cubic spline interpolation, Computational Fluid Dynamics}
+
