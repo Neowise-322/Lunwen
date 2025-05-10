@@ -268,12 +268,15 @@ Kriging 函数模型由回归模型与相关模型相加而成，其形式为\ci
 \quad\( z(x) \) —— 被假定为遵循 \( (0, \sigma^2) \) 正态分布，并且是一个数学期望为 0、标准偏差为 \( \sigma \) 的随机过程（相关模型）。
 
 在Kriging模型的构建中，参数化部分的作用等同于多项式部分，主要负责实现模型的全局拟合功能。由于Kriging模型具有确定性输出的特性，即相同的输入参数总是产生相同的响应输出，因此多项式部分与响应之间的误差主要来源于建模误差本身，这种误差对模型整体拟合精度的影响相对较小。基于此，通常在建立Kriging模型时，将\( f(x) \) 设定为零阶多项式。此时的Kriging模型被命名为普通Kriging模型，其变量满足二阶平稳性假设。
+
 二阶平稳假定：
+
 （1）随机过程 \( z(x) \) 的数学期望是一个确定的常数：
 \begin{equation}
     E[z(x)] = a
     \label{eq:2.3}
 \end{equation}
+
 （2）区域化变量 \( z(x) \) 的协方差函数存在并且相等：
 \begin{align}
     Cov[z(x), z(x+h)] &= E[(z(x) - E[z(x)])(z(x+h) - E[z(x+h)])] \notag \\
@@ -282,6 +285,7 @@ Kriging 函数模型由回归模型与相关模型相加而成，其形式为\ci
     &= Cov(h)
     \label{eq:2.4}
 \end{align}
+
 对区域化变量 \( z(x) \)，Kriging模型能够有效捕捉结构输入参数与输出响应之间的非线性关系，从而显著提高响应面的拟合精度。在估计 \( z(x) \)时，Kriging模型需要假设响应面是连续的，并且预测点的响应仅与空间距离相关 \( z(x) \)的协方差矩阵为：
 \begin{equation}
     Cov[z(x_i), z(x_j)] = \sigma^2 R[R(x_i, x_j)]
@@ -321,6 +325,7 @@ Kriging 函数模型由回归模型与相关模型相加而成，其形式为\ci
 \begin{equation}
 \mathrm{R}= \begin{bmatrix} R(x_1,x_1) & \cdots & R(x_1,x_n) \\ \vdots & \ddots & \vdots \\ R(x_n,x_1) & \cdots & R(x_n,x_n) \end{bmatrix}
 \end{equation}
+
 样本的似然函数表达式为：
 \begin{equation}
     L = \frac{1}{(2\pi\sigma^2)^{m/2}|R|^{1/2}} \exp\left[-\frac{(Y-F\beta)^T R^{-1}(Y-F\beta)}{2\sigma^2}\right]
@@ -372,8 +377,8 @@ F——每个样本点的向量$f(x)$的矩阵；
 \end{equation}
 
 式(3.25)说明 Kriging 模型对于未知点的响应预测值与实际响应值相等，故 Kriging
-模型可以代替有限元模型进行分析计算。 
-\section{数据对比分析方法}
+模型可以代替有限元模型进行分析计算。 \cite{1025273058.nh}
+\section{误差分析方法}
 \label{sec:4.1}
 为系统评估插值POD方法的流场重构性能，本研究采用定量误差分析与相关性验证相结合的评价体系。具体通过以下三类指标实现：
 
